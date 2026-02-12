@@ -1,8 +1,5 @@
 import express from 'express';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const app = express();
 
@@ -16,7 +13,4 @@ app.get('/test', (req, res) => {
   });
 });
 
-const port = process.env.PORT || 3000;
-const host = process.env.HOST || '127.0.0.1';
-
-export { port, host, app };
+export default app;
