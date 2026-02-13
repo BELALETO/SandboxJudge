@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
       min: [8, 'Password must be at least 8 charchters.'],
+      select: false,
       validate: {
         validator: function (p) {
           return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
@@ -80,6 +81,7 @@ const userSchema = new mongoose.Schema(
         delete ret._id;
         delete ret.__v;
         delete ret.password;
+        delete ret.passwordConfirm;
         return ret;
       }
     },
