@@ -67,6 +67,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: {
         values: ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'],
+        default: 'Bronze',
         message: "{VALUE} isn't supported."
       }
       //TODO: add problem sovled and populate it.
