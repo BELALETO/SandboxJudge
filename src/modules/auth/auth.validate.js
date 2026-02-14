@@ -24,3 +24,17 @@ export const registerSchema = Joi.object({
     .messages({ 'any.only': 'Passwords do not match' }),
   role: Joi.string().valid('Admin', 'User').optional()
 });
+
+export const loginSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    'string.empty': 'Email is required',
+    'string.email': 'Invalid email format'
+  }),
+  password: Joi.string()
+    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/)
+    .required()
+    .messages({
+      'string.pattern.base':
+        'Password must contain uppercase, lowercase, number, and special character'
+    })
+});
