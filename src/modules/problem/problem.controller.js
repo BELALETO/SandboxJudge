@@ -6,7 +6,7 @@ import {
   deleteProblem as deleteProblemService
 } from './problem.services.js';
 
-import { catchAsync } from '../../utils/catchAsync';
+import { catchAsync } from '../../utils/catchAsync.js';
 import AppError from '../../utils/AppError.js';
 
 export const createProblem = catchAsync(async (req, res) => {
