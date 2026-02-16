@@ -6,80 +6,52 @@ import {
   deleteProblem as deleteProblemService
 } from './problem.services.js';
 
-export const createProblem = async (req, res, next) => {
-  try {
-    const problem = await createProblemService(req.body);
-    res.status(201).json({
-      status: 'success',
-      data: problem
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+import { catchAsync } from '../../utils/catchAsync';
+import AppError from '../../utils/AppError.js';
 
-export const getProblems = async (req, res, next) => {
-  try {
-    const problems = await getProblemsService();
-    res.status(200).json({
-      status: 'success',
-      data: problems
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+export const createProblem = catchAsync(async (req, res) => {
+  const problem = await createProblemService(req.body);
+  res.status(201).json({
+    status: 'success',
+    data: problem
+  });
+});
 
-export const getProblemBySlug = async (req, res, next) => {
-  try {
-    const problem = await getProblemBySlugService(req.params.slug);
-    if (!problem) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Problem not found'
-      });
-    }
-    res.status(200).json({
-      status: 'success',
-      data: problem
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+export const getProblems = catchAsync(async (req, res) => {
+  const problems = await getProblemsService();
+  res.status(200).json({
+    status: 'success',
+    results: problems.length,
+    data: problems
+  });
+});
 
-export const updateProblem = async (req, res, next) => {
-  try {
-    const problem = await updateProblemService(req.params.slug, req.body);
-    if (!problem) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Problem not found'
-      });
-    }
-    res.status(200).json({
-      status: 'success',
-      data: problem
-    });
-  } catch (error) {
-    next(error);
+export const getProblemBySlug = catchAsync(async (req, res, next) => {
+  const problem = await getProblemBySlugService(req.params.slug);
+  if (!problem) {
+    return next(new AppError('Problem not found', 404));
   }
-};
+  res.status(200).json({
+    status: 'success',
+    data: problem
+  });
+});
 
-export const deleteProblem = async (req, res, next) => {
-  try {
-    const problem = await deleteProblemService(req.params.slug);
-    if (!problem) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Problem not found'
-      });
-    }
-    res.status(204).json({
-      status: 'success',
-      data: null
-    });
-  } catch (error) {
-    next(error);
+export const updateProblem = catchAsync(async (req, res, next) => {
+  const problem = await updateProblemService(req.params.slug, req.body);
+  if (!problem) {
+    return next(new AppError('Problem not found', 404));
   }
-};
+  res.status(200).json({
+    status: 'success',
+    data: problem
+  });
+});
+
+export const deleteProblem = catchAsync(async (req, res, next) => {
+  const problem = await deleteProblemService(req.params.slug);
+  if (!problem) {
+    return next(new AppError('Problem not found', 404));
+  }
+  res.status(204).send();
+});

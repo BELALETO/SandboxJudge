@@ -1,76 +1,53 @@
 import User from './user.model.js';
+import { catchAsync } from '../../utils/catchAsync.js';
+import AppError from '../../utils/AppError.js';
 
-const getAllUsers = async (req, res, next) => {
-  try {
-    const users = await User.find().populate('solvedProblems');
-    res.status(200).json({
-      status: 'success',
-      results: users.length,
-      data: {
-        users
-      }
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-const getUser = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.params.id).populate('solvedProblems');
-    if (!user) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'User not found'
-      });
+const getAllUsers = catchAsync(async (req, res) => {
+  const users = await User.find().populate('solvedProblems');
+  res.status(200).json({
+    status: 'success',
+    results: users.length,
+    data: {
+      users
     }
-    res.status(200).json({
-      status: 'success',
-      data: {
-        user
-      }
-    });
-  } catch (err) {
-    next(err);
+  });
+});
+
+const getUser = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id).populate('solvedProblems');
+  if (!user) {
+    return next(new AppError('User not found', 404));
   }
-};
-const updateUser = async (req, res, next) => {
-  try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
-    if (!user) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'User not found'
-      });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user
     }
-    res.status(200).json({
-      status: 'success',
-      data: {
-        user
-      }
-    });
-  } catch (err) {
-    next(err);
+  });
+});
+
+const updateUser = catchAsync(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  }).populate('solvedProblems');
+  if (!user) {
+    return next(new AppError('User not found', 404));
   }
-};
-const deleteUser = async (req, res, next) => {
-  try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'User not found'
-      });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user
     }
-    res.status(204).json({
-      status: 'success',
-      data: null
-    });
-  } catch (err) {
-    next(err);
+  });
+});
+
+const deleteUser = catchAsync(async (req, res, next) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+  if (!user) {
+    return next(new AppError('User not found', 404));
   }
-};
+  res.status(204).send();
+});
 
 export { getAllUsers, getUser, updateUser, deleteUser };
