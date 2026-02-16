@@ -52,7 +52,21 @@ const problemSchema = new mongoose.Schema(
   {
     timestamps: true,
     versionKey: false,
-    toJSON: { virtuals: true },
+    toJSON: {
+      virtuals: true,
+      transform(doc, ret) {
+        ret.id = ret._id;
+        ret.testCases = ret.testCases.map((testCase) => ({
+          input: testCase.input,
+          output: testCase.output
+        }));
+        delete ret._id;
+        delete ret.__v;
+        delete ret.password;
+        delete ret.passwordConfirm;
+        return ret;
+      }
+    },
     toObject: { virtuals: true }
   }
 );
