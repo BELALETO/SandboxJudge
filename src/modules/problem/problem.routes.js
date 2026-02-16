@@ -11,16 +11,20 @@ import {
   updateProblemSchema
 } from './problem.validate.js';
 
+import { validate } from '../../middlewares/validate.js';
 import express from 'express';
 
 const router = express.Router();
 
-router.route('/').post(createProblemSchema, createProblem).get(getProblems);
+router
+  .route('/')
+  .post(validate(createProblemSchema), createProblem)
+  .get(getProblems);
 
 router
   .route('/:slug')
   .get(getProblemBySlug)
-  .put(updateProblemSchema, updateProblem)
+  .patch(validate(updateProblemSchema), updateProblem)
   .delete(deleteProblem);
 
 export default router;

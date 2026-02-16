@@ -12,10 +12,7 @@ const problemSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      unique: true,
-      slugify: function () {
-        return slugify(this.title, { lower: true });
-      }
+      unique: true
     },
     description: {
       type: String,
@@ -59,6 +56,13 @@ const problemSchema = new mongoose.Schema(
     toObject: { virtuals: true }
   }
 );
+
+problemSchema.pre('save', function () {
+  if (this.isModified('title')) {
+    this.slug = slugify(this.title, { lower: true });
+  }
+  return;
+});
 
 const Problem = mongoose.model('Problem', problemSchema);
 
