@@ -71,8 +71,13 @@ const userSchema = new mongoose.Schema(
         default: 'Bronze',
         message: "{VALUE} isn't supported."
       }
-      //TODO: add problem sovled and populate it.
-    }
+    },
+    solvedProblems: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Problem'
+      }
+    ]
   },
   {
     timestamps: true,

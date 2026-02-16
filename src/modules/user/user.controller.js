@@ -2,7 +2,7 @@ import User from './user.model.js';
 
 const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find();
+    const users = await User.find().populate('solvedProblems');
     res.status(200).json({
       status: 'success',
       results: users.length,
@@ -16,7 +16,7 @@ const getAllUsers = async (req, res, next) => {
 };
 const getUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).populate('solvedProblems');
     if (!user) {
       return res.status(404).json({
         status: 'fail',
