@@ -4,7 +4,7 @@ import {
   getProblemBySlug as getProblemBySlugService,
   updateProblem as updateProblemService,
   deleteProblem as deleteProblemService
-} from './problem.service.js';
+} from './problem.services.js';
 
 export const createProblem = async (req, res, next) => {
   try {

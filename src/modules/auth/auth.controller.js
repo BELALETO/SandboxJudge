@@ -1,5 +1,5 @@
 import passport from 'passport';
-import { registerUser, loginUser } from './auth.service.js';
+import { registerUser, loginUser } from './auth.services.js';
 
 export const register = async (req, res, next) => {
   try {
