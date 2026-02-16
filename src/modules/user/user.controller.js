@@ -1,18 +1,5 @@
 import User from './user.model.js';
 
-const createUser = async (req, res, next) => {
-  try {
-    const user = await User.create(req.body);
-    res.status(201).json({
-      status: 'success',
-      data: {
-        user
-      }
-    });
-  } catch (err) {
-    next(err);
-  }
-};
 const getAllUsers = async (req, res, next) => {
   try {
     const users = await User.find();
@@ -86,4 +73,4 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-export { createUser, getAllUsers, getUser, updateUser, deleteUser };
+export { getAllUsers, getUser, updateUser, deleteUser };
