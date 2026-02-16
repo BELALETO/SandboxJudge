@@ -1,5 +1,6 @@
 import User from '../user/user.model.js';
 import { generateToken } from '../../utils/jwt.js';
+import passport from 'passport';
 
 export const register = async (req, res, next) => {
   try {
@@ -26,25 +27,33 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).select('+password');
-    if (!user || !(await user.correctPassword(password, user.password))) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Incorrect email or password.'
+    passport.authenticate('local', { session: false }, (err, user, info) => {
+      if (err || !user) {
+        return res.status(400).json({
+          status: 'error',
+          message: info ? info.message : 'Login failed'
+        });
+      }
+      req.login(user, { session: false }, async (error) => {
+        if (error) {
+          return res.status(400).json({
+            status: 'error',
+            message: error
+          });
+        }
+        const token = await generateToken(user._id);
+        return res.json({
+          status: 'success',
+          token,
+          user
+        });
       });
-    }
-    const token = await generateToken(user._id);
-    res.status(200).json({
-      status: 'success',
-      token,
-      user
-    });
+    })(req, res);
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       status: 'error',
-      error,
-      message: 'something went wrong :('
+      message: 'An error occurred during login'
     });
   }
 };
