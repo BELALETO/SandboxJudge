@@ -3,15 +3,7 @@ import { generateToken } from '../../utils/jwt.js';
 import AppError from '../../utils/AppError.js';
 
 export const registerUser = async (userData) => {
-  const { firstName, lastName, email, password, passwordConfirm } = userData;
-
-  const user = await User.create({
-    firstName,
-    lastName,
-    email,
-    password,
-    passwordConfirm
-  });
+  const user = await User.create(userData);
 
   const token = await generateToken(user.id);
 
@@ -28,7 +20,7 @@ export const registerUser = async (userData) => {
 export const loginUser = async (incomingData) => {
   const { email, password } = incomingData;
   const user = await User.findOne({ email }).select('+password');
-  if (!email || !user.correctPassword(password, user.password)) {
+  if (!user || !user.correctPassword(password, user.password)) {
     throw new AppError('Incorrect email or password', 400);
   }
   const token = await generateToken(user.id);

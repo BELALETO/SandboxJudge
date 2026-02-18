@@ -34,6 +34,7 @@ export const loginSchema = Joi.object({
     .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/)
     .required()
     .messages({
+      'string.empty': 'Password is required',
       'string.pattern.base':
         'Password must contain uppercase, lowercase, number, and special character'
     })
