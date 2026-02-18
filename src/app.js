@@ -1,17 +1,18 @@
 import express from 'express';
 import morgan from 'morgan';
-// import passport from './config/passport.js';
 import problemRouter from './modules/problem/problem.routes.js';
 import userRouter from './modules/user/user.routes.js';
 import authRouter from './modules/auth/auth.routes.js';
 import AppError from './utils/AppError.js';
 import errorHandler from './middlewares/errorHandler.js';
+import config from './config/config.js';
+
+console.log('env :>> ', config.env);
 
 const app = express();
 
 app.use(express.json());
 app.use(morgan('dev'));
-// app.use(passport.initialize());
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);

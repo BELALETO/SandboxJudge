@@ -1,4 +1,19 @@
-import env from '../config/config.js';
+import config from '../config/config.js';
+import AppError from '../utils/AppError.js';
+
+const env = config.env;
+
+const duplicateFieldErrorHandler = (err) => {
+  const field = Object.keys(err.keyValue)[0];
+  const value = err.keyValue[field];
+  const message = `Duplicate field value: ${value}. Please use another value!`;
+  return new AppError(message, 400);
+};
+
+const castErrorHandler = (err) => {
+  const message = `Invalid ${err.path}: ${err.value}.`;
+  return new AppError(message, 400);
+};
 
 const sendDevError = (err, res) => {
   console.error(err);
@@ -32,7 +47,15 @@ const sendProdError = (err, res) => {
 };
 
 export default (err, req, res, next) => {
-  const error = { ...err };
+  let error = err;
+
+  if (error.code === 11000) {
+    error = duplicateFieldErrorHandler(error);
+  }
+
+  if (error.kind === 'ObjectId') {
+    error = castErrorHandler(error);
+  }
   if (env === 'development') {
     sendDevError(error, res);
   } else {
