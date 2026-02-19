@@ -11,6 +11,8 @@ console.log('env :>> ', config.env);
 
 const app = express();
 
+app.set('query parser', 'extended');
+
 app.use(express.json());
 app.use(morgan('dev'));
 
