@@ -20,7 +20,7 @@ export const registerUser = async (userData) => {
 export const loginUser = async (incomingData) => {
   const { email, password } = incomingData;
   const user = await User.findOne({ email }).select('+password');
-  if (!user || !user.correctPassword(password, user.password)) {
+  if (!user || !(await user.correctPassword(password, user.password))) {
     throw new AppError('Incorrect email or password', 400);
   }
   const token = await generateToken(user.id);
