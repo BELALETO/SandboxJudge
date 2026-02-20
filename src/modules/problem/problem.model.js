@@ -30,18 +30,21 @@ const problemSchema = new mongoose.Schema(
       type: [String],
       default: []
     },
-    testCases: [
-      {
-        input: {
-          type: String,
-          required: [true, 'Test case input is required']
-        },
-        output: {
-          type: String,
-          required: [true, 'Test case output is required']
+    testCases: {
+      type: [
+        {
+          input: {
+            type: String,
+            required: true
+          },
+          output: {
+            type: String,
+            required: true
+          }
         }
-      }
-    ],
+      ],
+      default: []
+    },
     points: {
       type: Number,
       required: [true, 'Problem points are required'],
@@ -56,14 +59,18 @@ const problemSchema = new mongoose.Schema(
       virtuals: true,
       transform(doc, ret) {
         ret.id = ret._id;
-        ret.testCases = ret.testCases.map((testCase) => ({
-          input: testCase.input,
-          output: testCase.output
-        }));
+
+        if (Array.isArray(ret.testCases)) {
+          ret.testCases = ret.testCases.map((tc) => ({
+            input: tc.input,
+            output: tc.output
+          }));
+        } else {
+          ret.testCases = [];
+        }
+
         delete ret._id;
         delete ret.__v;
-        delete ret.password;
-        delete ret.passwordConfirm;
         return ret;
       }
     },

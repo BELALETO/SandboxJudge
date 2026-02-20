@@ -18,7 +18,7 @@ export const createProblem = catchAsync(async (req, res) => {
 });
 
 export const getProblems = catchAsync(async (req, res) => {
-  const problems = await getProblemsService();
+  const problems = await getProblemsService(req.query);
   res.status(200).json({
     status: 'success',
     results: problems.length,

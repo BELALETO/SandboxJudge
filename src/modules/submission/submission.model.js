@@ -23,6 +23,29 @@ const submissionSchema = new mongoose.Schema(
         values: ['C', 'C++', 'Java', 'Python', 'JavaScript'],
         message: "{VALUE} isn't supported."
       }
+    },
+    status: {
+      type: String,
+      default: 'Pending',
+      enum: {
+        values: [
+          'Pending',
+          'Accepted',
+          'Wrong Answer',
+          'Time Limit Exceeded',
+          'Runtime Error',
+          'Compilation Error'
+        ],
+        message: "{VALUE} isn't supported."
+      }
+    },
+    executionTime: {
+      type: Number,
+      default: 0
+    },
+    memoryUsage: {
+      type: Number,
+      default: 0
     }
   },
   {

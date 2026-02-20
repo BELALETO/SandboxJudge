@@ -120,29 +120,26 @@ userSchema.methods.updateRank = function () {
   else if (this.score >= 200) this.rank = 'Gold';
   else if (this.score >= 100) this.rank = 'Silver';
   else this.rank = 'Bronze';
-};
-
-userSchema.methods.updateScore = async function (problemId) {
-  const problem = await Problem.findById(problemId);
-  if (!problem) {
-    throw new AppError('Problem not found', 404);
-  }
-
-  this.score += problem.points;
-  this.updateRank();
+  return this;
 };
 
 userSchema.methods.addSolvedProblem = async function (problemId) {
   const alreadySolved = this.solvedProblems.some((id) => id.equals(problemId));
-
-  if (alreadySolved) return;
+  if (alreadySolved) return this;
 
   const problem = await Problem.findById(problemId);
-  if (!problem) {
-    throw new AppError('Problem not found', 404);
-  }
+  if (!problem) throw new AppError('Problem not found', 404);
 
   this.solvedProblems.push(problemId);
+  return this;
+};
+
+userSchema.methods.updateScore = async function (problemId) {
+  const problem = await Problem.findById(problemId);
+  if (!problem) throw new AppError('Problem not found', 404);
+
+  this.score += problem.points;
+  return this;
 };
 
 const User = mongoose.model('User', userSchema);
