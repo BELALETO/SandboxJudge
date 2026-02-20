@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
+import Problem from '../problem/problem.model.js';
+import AppError from '../../utils/AppError.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,16 +24,14 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       validate: {
-        validator: function (e) {
-          return validator.isEmail(e);
-        },
+        validator: validator.isEmail,
         message: (props) => `${props.value} is not a valid email!`
       }
     },
     password: {
       type: String,
       required: [true, 'Password is required'],
-      min: [8, 'Password must be at least 8 charchters.'],
+      minlength: [8, 'Password must be at least 8 characters.'],
       select: false,
       validate: {
         validator: function (p) {
@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema(
             p
           );
         },
-        message: (props) => `${props.value} is not a valid password!`
+        message: 'Password is not strong enough.'
       }
     },
     passwordConfirm: {
@@ -66,9 +66,9 @@ const userSchema = new mongoose.Schema(
     },
     rank: {
       type: String,
+      default: 'Bronze',
       enum: {
         values: ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'],
-        default: 'Bronze',
         message: "{VALUE} isn't supported."
       }
     },
@@ -101,34 +101,49 @@ userSchema.virtual('fullName').get(function () {
 });
 
 userSchema.pre('save', async function () {
-  if (this.isModified('password') || this.isNew) {
-    this.password = await bcrypt.hash(this.password, 12);
-  }
+  if (!this.isModified('password')) return;
+
+  this.password = await bcrypt.hash(this.password, 12);
   this.passwordConfirm = undefined;
-  return;
 });
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
-  return await bcrypt.compare(candidatePassword, userPassword);
+  return bcrypt.compare(candidatePassword, userPassword);
 };
 
 userSchema.methods.updateRank = function () {
-  if (this.score >= 1000) {
-    this.rank = 'Diamond';
-  } else if (this.score >= 500) {
-    this.rank = 'Platinum';
-  } else if (this.score >= 200) {
-    this.rank = 'Gold';
-  } else if (this.score >= 100) {
-    this.rank = 'Silver';
-  } else {
-    this.rank = 'Bronze';
+  if (this.score >= 1000) this.rank = 'Diamond';
+  else if (this.score >= 500) this.rank = 'Platinum';
+  else if (this.score >= 200) this.rank = 'Gold';
+  else if (this.score >= 100) this.rank = 'Silver';
+  else this.rank = 'Bronze';
+};
+
+userSchema.methods.updateScore = async function (problemId) {
+  const problem = await Problem.findById(problemId);
+  if (!problem) {
+    throw new AppError('Problem not found', 404);
   }
+
+  this.score += problem.points;
+  this.updateRank();
+};
+
+userSchema.methods.addSolvedProblem = async function (problemId) {
+  const alreadySolved = this.solvedProblems.some((id) => id.equals(problemId));
+
+  if (alreadySolved) return;
+
+  const problem = await Problem.findById(problemId);
+  if (!problem) {
+    throw new AppError('Problem not found', 404);
+  }
+
+  this.solvedProblems.push(problemId);
 };
 
 const User = mongoose.model('User', userSchema);
-
 export default User;
