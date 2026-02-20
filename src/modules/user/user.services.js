@@ -21,4 +21,28 @@ const getUserService = async (id) => {
   return user;
 };
 
-export { getAllUsersService, getUserService };
+const leaderboardService = async () => {
+  const users = await User.aggregate([
+    {
+      $match: { score: { $gt: 0 }, $and: { rank: { $ne: 'Bronze' } } }
+    },
+    {
+      $group: {
+        _id: '$rank',
+        numberOfUsers: { $sum: 1 }
+      }
+    },
+    { $sort: { score: -1 } },
+    { $limit: 10 },
+    {
+      $project: {
+        _id: 0,
+        rank: '$_id',
+        numberOfUsers: 1
+      }
+    }
+  ]);
+  return users;
+};
+
+export { getAllUsersService, getUserService, leaderboardService };

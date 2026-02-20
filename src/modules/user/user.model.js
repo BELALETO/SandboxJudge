@@ -114,6 +114,21 @@ userSchema.methods.correctPassword = async function (
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
+
+userSchema.methods.updateRank = function () {
+  if (this.score >= 1000) {
+    this.rank = 'Diamond';
+  } else if (this.score >= 500) {
+    this.rank = 'Platinum';
+  } else if (this.score >= 200) {
+    this.rank = 'Gold';
+  } else if (this.score >= 100) {
+    this.rank = 'Silver';
+  } else {
+    this.rank = 'Bronze';
+  }
+};
+
 const User = mongoose.model('User', userSchema);
 
 export default User;

@@ -1,7 +1,11 @@
 import User from './user.model.js';
 import { catchAsync } from '../../utils/catchAsync.js';
 import AppError from '../../utils/AppError.js';
-import { getAllUsersService, getUserService } from './user.services.js';
+import {
+  getAllUsersService,
+  getUserService,
+  leaderboardService
+} from './user.services.js';
 
 const getAllUsers = catchAsync(async (req, res) => {
   const users = await getAllUsersService(req.query);
@@ -51,4 +55,14 @@ const deleteUser = catchAsync(async (req, res, next) => {
   res.status(204).send();
 });
 
-export { getAllUsers, getUser, updateUser, deleteUser };
+const leaderboard = catchAsync(async (req, res) => {
+  const users = await leaderboardService();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      users
+    }
+  });
+});
+
+export { getAllUsers, getUser, updateUser, deleteUser, leaderboard };
