@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import config from './config.js';
 
-const { mongoURI } = config;
+const { mongoURI, mongoURIProd } = config;
 
 export async function connectDB() {
   try {
-    await mongoose.connect(mongoURI);
+    await mongoose.connect(mongoURIProd);
     console.log('Database connected');
   } catch (error) {
     console.error(error);
