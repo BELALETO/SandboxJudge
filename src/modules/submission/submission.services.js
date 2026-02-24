@@ -26,13 +26,16 @@ const createSubmission = async (submissionData) => {
   return submission;
 };
 
-const getSubmissions = async () => {
-  const submissions = await Submission.find()
+//* Get all submissions for a user
+
+const getSubmissions = async (id) => {
+  const submissions = await Submission.find({ user: id })
     .populate('user', 'firstName lastName fullName')
     .populate('problem', 'title');
   return submissions;
 };
 
+//* Get a single submission by ID
 const getSubmissionById = async (id) => {
   const submission = await Submission.findById(id)
     .populate('user', 'firstName lastName fullName')

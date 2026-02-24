@@ -13,7 +13,7 @@ export const createSubmission = catchAsync(async (req, res) => {
 });
 
 export const getSubmissions = catchAsync(async (req, res) => {
-  const submissions = await getSubmissionsService();
+  const submissions = await getSubmissionsService(req.params.id);
   res.status(200).json(submissions);
 });
 
