@@ -28,7 +28,7 @@ const createSubmission = async (submissionData) => {
 
 const getSubmissions = async () => {
   const submissions = await Submission.find()
-    .populate('user', 'username')
+    .populate('user', 'firstName lastName fullName')
     .populate('problem', 'title');
   return submissions;
 };
