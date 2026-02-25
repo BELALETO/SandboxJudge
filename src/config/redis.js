@@ -12,4 +12,9 @@ const connectRedis = catchAsync(async () => {
   console.log('Connected to Redis');
 });
 
-export { client, connectRedis };
+const disconnectRedis = catchAsync(async () => {
+  await client.quit();
+  console.log('Disconnected from Redis');
+});
+
+export { client, connectRedis, disconnectRedis };

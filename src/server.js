@@ -1,7 +1,7 @@
 import server from './app.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import config from './config/config.js';
-import { connectRedis } from './config/redis.js';
+import { connectRedis, disconnectRedis } from './config/redis.js';
 
 const { port, host } = config;
 
@@ -21,6 +21,7 @@ async function startServer() {
       // Close the server first to stop accepting new requests
       listener.close(async () => {
         try {
+          await disconnectRedis();
           await disconnectDB();
           console.log('Process exiting.');
           process.exit(0);
