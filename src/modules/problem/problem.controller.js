@@ -8,6 +8,7 @@ import {
 
 import { catchAsync } from '../../utils/catchAsync.js';
 import AppError from '../../utils/AppError.js';
+import { client } from '../../config/redis.js';
 
 export const createProblem = catchAsync(async (req, res) => {
   const problem = await createProblemService(req.body);
@@ -19,6 +20,7 @@ export const createProblem = catchAsync(async (req, res) => {
 
 export const getProblems = catchAsync(async (req, res) => {
   const problems = await getProblemsService(req.query);
+  await client.set(req.originalUrl, JSON.stringify(problems), { EX: 3600 });
   res.status(200).json({
     status: 'success',
     results: problems.length,
@@ -31,6 +33,7 @@ export const getProblemBySlug = catchAsync(async (req, res, next) => {
   if (!problem) {
     return next(new AppError('Problem not found', 404));
   }
+  await client.set(req.originalUrl, JSON.stringify(problem), { EX: 3600 });
   res.status(200).json({
     status: 'success',
     data: problem

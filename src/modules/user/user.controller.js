@@ -6,9 +6,11 @@ import {
   getUserService,
   leaderboardService
 } from './user.services.js';
+import { client } from '../../config/redis.js';
 
 const getAllUsers = catchAsync(async (req, res) => {
   const users = await getAllUsersService(req.query);
+  await client.set(req.originalUrl, JSON.stringify(users), { EX: 3600 });
   res.status(200).json({
     status: 'success',
     results: users.length,
@@ -23,6 +25,7 @@ const getUser = catchAsync(async (req, res, next) => {
   if (!user) {
     return next(new AppError('User not found', 404));
   }
+  await client.set(req.originalUrl, JSON.stringify(user), { EX: 3600 });
   res.status(200).json({
     status: 'success',
     data: {

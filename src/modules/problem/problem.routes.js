@@ -5,6 +5,7 @@ import {
   updateProblem,
   deleteProblem
 } from './problem.controller.js';
+import { cacheMiddleware } from '../../middlewares/cache.js';
 
 import {
   createProblemSchema,
@@ -19,11 +20,11 @@ const router = express.Router();
 router
   .route('/')
   .post(validate(createProblemSchema), createProblem)
-  .get(getProblems);
+  .get(cacheMiddleware, getProblems);
 
 router
   .route('/:slug')
-  .get(getProblemBySlug)
+  .get(cacheMiddleware, getProblemBySlug)
   .patch(validate(updateProblemSchema), updateProblem)
   .delete(deleteProblem);
 
