@@ -1,4 +1,5 @@
 import redis from 'redis';
+import { catchAsync } from '../utils/catchAsync.js';
 
 const client = redis.createClient({ url: 'redis://localhost:6379' });
 
@@ -6,9 +7,9 @@ client.on('error', (err) => {
   console.error('Redis Error:', err);
 });
 
-const connectRedis = async () => {
+const connectRedis = catchAsync(async () => {
   await client.connect();
-  console.log('Redis client connected to server successfully!');
-};
+  console.log('Connected to Redis');
+});
 
 export { client, connectRedis };

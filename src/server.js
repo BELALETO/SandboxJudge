@@ -1,11 +1,13 @@
 import server from './app.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import config from './config/config.js';
+import { connectRedis } from './config/redis.js';
 
 const { port, host } = config;
 
 async function startServer() {
   try {
+    await connectRedis();
     await connectDB();
 
     const listener = server.listen(port, host, () => {
