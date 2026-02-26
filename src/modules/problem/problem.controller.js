@@ -9,6 +9,7 @@ import {
 import { catchAsync } from '../../utils/catchAsync.js';
 import AppError from '../../utils/AppError.js';
 import { client } from '../../config/redis.js';
+import { cacheData } from '../../utils/cacheData.js';
 
 export const createProblem = catchAsync(async (req, res) => {
   const problem = await createProblemService(req.body);
@@ -20,7 +21,9 @@ export const createProblem = catchAsync(async (req, res) => {
 
 export const getProblems = catchAsync(async (req, res) => {
   const problems = await getProblemsService(req.query);
-  await client.set(req.originalUrl, JSON.stringify(problems), { EX: 3600 });
+  if (res.locals.cacheKey) {
+    await cacheData(res.locals.cacheKey, problems, 3600);
+  }
   res.status(200).json({
     status: 'success',
     results: problems.length,
@@ -33,7 +36,9 @@ export const getProblemBySlug = catchAsync(async (req, res, next) => {
   if (!problem) {
     return next(new AppError('Problem not found', 404));
   }
-  await client.set(req.originalUrl, JSON.stringify(problem), { EX: 3600 });
+  if (res.locals.cacheKey) {
+    await cacheData(res.locals.cacheKey, problem, 3600);
+  }
   res.status(200).json({
     status: 'success',
     data: problem
@@ -45,6 +50,9 @@ export const updateProblem = catchAsync(async (req, res, next) => {
   if (!problem) {
     return next(new AppError('Problem not found', 404));
   }
+  if (res.locals.cacheKey) {
+    await cacheData(res.locals.cacheKey, problem, 3600);
+  }
   res.status(200).json({
     status: 'success',
     data: problem
@@ -55,6 +63,9 @@ export const deleteProblem = catchAsync(async (req, res, next) => {
   const problem = await deleteProblemService(req.params.slug);
   if (!problem) {
     return next(new AppError('Problem not found', 404));
+  }
+  if (res.locals.cacheKey) {
+    await client.del(res.locals.cacheKey);
   }
   res.status(204).send();
 });

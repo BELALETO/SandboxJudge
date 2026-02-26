@@ -7,10 +7,13 @@ import {
   leaderboardService
 } from './user.services.js';
 import { client } from '../../config/redis.js';
+import { cacheData } from '../../utils/cacheData.js';
 
 const getAllUsers = catchAsync(async (req, res) => {
   const users = await getAllUsersService(req.query);
-  await client.set(req.originalUrl, JSON.stringify(users), { EX: 3600 });
+  if (res.locals.cacheKey) {
+    await cacheData(res.locals.cacheKey, users, 3600);
+  }
   res.status(200).json({
     status: 'success',
     results: users.length,
@@ -24,6 +27,9 @@ const getUser = catchAsync(async (req, res, next) => {
   const user = await getUserService(req.params.id);
   if (!user) {
     return next(new AppError('User not found', 404));
+  }
+  if (res.locals.cacheKey) {
+    await cacheData(res.locals.cacheKey, user, 3600);
   }
   await client.set(req.originalUrl, JSON.stringify(user), { EX: 3600 });
   res.status(200).json({
@@ -42,6 +48,9 @@ const updateUser = catchAsync(async (req, res, next) => {
   if (!user) {
     return next(new AppError('User not found', 404));
   }
+  if (res.locals.cacheKey) {
+    await cacheData(res.locals.cacheKey, user, 3600);
+  }
   res.status(200).json({
     status: 'success',
     data: {
@@ -54,6 +63,9 @@ const deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndDelete(req.params.id);
   if (!user) {
     return next(new AppError('User not found', 404));
+  }
+  if (res.locals.cacheKey) {
+    await client.del(res.locals.cacheKey);
   }
   res.status(204).send();
 });

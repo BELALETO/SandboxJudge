@@ -20,11 +20,11 @@ const router = express.Router();
 router
   .route('/')
   .post(validate(createProblemSchema), createProblem)
-  .get(cacheMiddleware, getProblems);
+  .get(cacheMiddleware('problems'), getProblems);
 
 router
   .route('/:slug')
-  .get(cacheMiddleware, getProblemBySlug)
+  .get(cacheMiddleware('problem'), getProblemBySlug)
   .patch(validate(updateProblemSchema), updateProblem)
   .delete(deleteProblem);
 

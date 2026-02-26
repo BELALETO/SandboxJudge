@@ -1,16 +1,18 @@
 import { client } from '../config/redis.js';
+import { buildCacheKey } from '../utils/cacheKeyBuilder.js';
 import { catchAsync } from '../utils/catchAsync.js';
 
-const cacheMiddleware = catchAsync(async (req, res, next) => {
-  const key = req.originalUrl;
-  const cachedData = await client.get(key);
+export const cacheMiddleware = (prefix = 'cache') =>
+  catchAsync(async (req, res, next) => {
+    const key = buildCacheKey(req, prefix);
+    const cachedData = await client.get(key);
 
-  if (cachedData) {
-    console.log('Cached data :)');
-    return res.json(JSON.parse(cachedData));
-  }
+    if (cachedData) {
+      console.log(`[CACHE HIT] ${key}`);
+      return res.json(JSON.parse(cachedData));
+    }
 
-  next();
-});
-
-export { cacheMiddleware };
+    // Attach key to res.locals so service can cache later
+    res.locals.cacheKey = key;
+    next();
+  });

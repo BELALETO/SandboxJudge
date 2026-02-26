@@ -15,10 +15,10 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(protect, restrictTo('Admin'), cacheMiddleware, getAllUsers);
+  .get(protect, restrictTo('Admin'), cacheMiddleware('users'), getAllUsers);
 router
   .route('/:id')
-  .get(cacheMiddleware, getUser)
+  .get(cacheMiddleware('user'), getUser)
   .patch(protect, restrictTo('Admin'), updateUser)
   .delete(protect, restrictTo('Admin'), deleteUser);
 router.route('/leaderboard').get(leaderboard);
