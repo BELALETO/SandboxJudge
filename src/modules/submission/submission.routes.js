@@ -7,6 +7,6 @@ import { cacheMiddleware } from '../../middlewares/cache.js';
 const router = express.Router();
 
 router.post('/', validate(createSubmissionSchema), createSubmission);
-router.get('/:id', cacheMiddleware, getSubmissions);
+router.get('/:id', cacheMiddleware('submission'), getSubmissions);
 
 export default router;
