@@ -6,11 +6,12 @@ import authRouter from './modules/auth/auth.routes.js';
 import submissionRouter from './modules/submission/submission.routes.js';
 import AppError from './utils/AppError.js';
 import errorHandler from './middlewares/errorHandler.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 app.set('query parser', 'extended');
-
+app.use(cookieParser());
 app.use(express.json());
 app.use(morgan('dev'));
 

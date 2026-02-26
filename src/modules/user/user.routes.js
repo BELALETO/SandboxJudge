@@ -8,15 +8,19 @@ import {
   leaderboard
 } from './user.controller.js';
 import { cacheMiddleware } from '../../middlewares/cache.js';
+import restrictTo from '../../middlewares/restrictTo.js';
+import protect from '../../middlewares/protect.js';
 
 const router = express.Router();
 
-router.route('/').get(cacheMiddleware, getAllUsers);
+router
+  .route('/')
+  .get(protect, restrictTo('Admin'), cacheMiddleware, getAllUsers);
 router
   .route('/:id')
   .get(cacheMiddleware, getUser)
-  .patch(updateUser)
-  .delete(deleteUser);
+  .patch(protect, restrictTo('Admin'), updateUser)
+  .delete(protect, restrictTo('Admin'), deleteUser);
 router.route('/leaderboard').get(leaderboard);
 
 export default router;
