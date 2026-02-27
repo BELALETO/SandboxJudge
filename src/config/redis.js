@@ -1,20 +1,21 @@
 import redis from 'redis';
 import { catchAsync } from '../utils/catchAsync.js';
+import { appLogger } from './logger.js';
 
 const client = redis.createClient({ url: 'redis://localhost:6379' });
 
 client.on('error', (err) => {
-  console.error('Redis Error:', err);
+  appLogger.error('Redis Error:', err);
 });
 
 const connectRedis = catchAsync(async () => {
   await client.connect();
-  console.log('Connected to Redis');
+  appLogger.info('Connected to Redis');
 });
 
 const disconnectRedis = catchAsync(async () => {
   await client.quit();
-  console.log('Disconnected from Redis');
+  appLogger.info('Disconnected from Redis');
 });
 
 export { client, connectRedis, disconnectRedis };

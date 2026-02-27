@@ -1,5 +1,6 @@
 import config from '../config/config.js';
 import AppError from '../utils/AppError.js';
+import { appLogger } from '../config/logger.js';
 
 const env = config.env;
 
@@ -16,7 +17,7 @@ const castErrorHandler = (err) => {
 };
 
 const sendDevError = (err, res) => {
-  console.error(err);
+  appLogger.error(err.message);
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,

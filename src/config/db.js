@@ -1,16 +1,17 @@
 import mongoose from 'mongoose';
 import config from './config.js';
 import { catchAsync } from '../utils/catchAsync.js';
+import { appLogger } from './logger.js';
 
 const { mongoURI, mongoURIProd } = config;
 
 export const connectDB = catchAsync(async () => {
   const uri = process.env.ENV === 'production' ? mongoURIProd : mongoURI;
   await mongoose.connect(uri);
-  console.log('Database connected');
+  appLogger.info('Database connected');
 });
 
 export const disconnectDB = catchAsync(async () => {
   await mongoose.disconnect();
-  console.log('Database disconnected');
+  appLogger.info('Database disconnected');
 });
