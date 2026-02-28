@@ -1,5 +1,8 @@
 import express from 'express';
-import { createSubmission, getSubmissions } from './submission.controller.js';
+import {
+  createSubmission,
+  getSubmissionById
+} from './submission.controller.js';
 import { validate } from '../../middlewares/validate.js';
 import { createSubmissionSchema } from './submission.validate.js';
 import { cacheMiddleware } from '../../middlewares/cache.js';
@@ -7,6 +10,6 @@ import { cacheMiddleware } from '../../middlewares/cache.js';
 const router = express.Router();
 
 router.post('/', validate(createSubmissionSchema), createSubmission);
-router.get('/:id', cacheMiddleware('submission'), getSubmissions);
+router.get('/:id', cacheMiddleware('submission'), getSubmissionById);
 
 export default router;

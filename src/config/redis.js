@@ -1,6 +1,6 @@
 import redis from 'redis';
 import { catchAsync } from '../utils/catchAsync.js';
-import { appLogger } from './logger.js';
+import { appLogger } from '../utils/logger.js';
 
 const client = redis.createClient({ url: 'redis://localhost:6379' });
 

@@ -26,15 +26,6 @@ const createSubmission = async (submissionData) => {
   return submission;
 };
 
-//* Get all submissions for a user
-
-const getSubmissions = async (id) => {
-  const submissions = await Submission.find({ user: id })
-    .populate('user', 'firstName lastName fullName')
-    .populate('problem', 'title');
-  return submissions;
-};
-
 //* Get a single submission by ID
 const getSubmissionById = async (id) => {
   const submission = await Submission.findById(id)
@@ -54,9 +45,4 @@ const deleteSubmission = async (id) => {
   return submission;
 };
 
-export {
-  createSubmission,
-  getSubmissions,
-  getSubmissionById,
-  deleteSubmission
-};
+export { createSubmission, getSubmissionById, deleteSubmission };

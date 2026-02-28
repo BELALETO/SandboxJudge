@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import config from './config.js';
 import { catchAsync } from '../utils/catchAsync.js';
-import { appLogger } from './logger.js';
+import { appLogger } from '../utils/logger.js';
 
 const { mongoURI, mongoURIProd } = config;
 

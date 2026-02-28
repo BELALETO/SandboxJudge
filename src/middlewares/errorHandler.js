@@ -1,36 +1,86 @@
 import config from '../config/config.js';
 import AppError from '../utils/AppError.js';
-import { appLogger } from '../config/logger.js';
+import {
+  appLogger,
+  authLogger,
+  problemLogger,
+  submitLogger
+} from '../utils/logger.js';
 
 const env = config.env;
 
-const duplicateFieldErrorHandler = (err) => {
+/* ----------------------------
+   Error normalizers
+----------------------------- */
+const handleDuplicateFieldError = (err) => {
   const field = Object.keys(err.keyValue)[0];
   const value = err.keyValue[field];
-  const message = `Duplicate field value: ${value}. Please use another value!`;
-  return new AppError(message, 400);
+  return new AppError(
+    `Duplicate field value: ${value}. Please use another value!`,
+    400
+  );
 };
 
-const castErrorHandler = (err) => {
-  const message = `Invalid ${err.path}: ${err.value}.`;
-  return new AppError(message, 400);
+const handleCastError = (err) => {
+  return new AppError(`Invalid ${err.path}: ${err.value}.`, 400);
 };
 
-const sendDevError = (err, res) => {
-  appLogger.error(err.message);
-  if (err.isOperational) {
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-      stack: err.stack,
-      error: err
-    });
-  } else {
-    res.status(500).json({
-      status: 'error',
-      message: 'Internal Server Error'
-    });
+const normalizeError = (err) => {
+  if (err.code === 11000) return handleDuplicateFieldError(err);
+  if (err.kind === 'ObjectId') return handleCastError(err);
+  return err;
+};
+
+/* ----------------------------
+   Logging
+----------------------------- */
+const logError = (err, req) => {
+  console.log(req.originalUrl);
+
+  const isAuthRoute = req.originalUrl.includes('/auth');
+  const isProblemRoute = req.originalUrl.includes('/problems');
+  const isSubmissionRoute = req.originalUrl.includes('/submissions');
+  const isOperational = err.isOperational;
+
+  const meta = {
+    path: req.originalUrl,
+    method: req.method,
+    ip: req.ip
+  };
+
+  if (isAuthRoute) {
+    if (isOperational) authLogger.warn(err.message, meta);
+    else authLogger.error(err.message, { ...meta, stack: err.stack });
+    return;
   }
+
+  if (isProblemRoute) {
+    if (isOperational) problemLogger.warn(err.message, meta);
+    else problemLogger.error(err.message, { ...meta, stack: err.stack });
+    return;
+  }
+
+  if (isSubmissionRoute) {
+    if (isOperational) submitLogger.warn(err.message, meta);
+    else submitLogger.error(err.message, { ...meta, stack: err.stack });
+    return;
+  }
+
+  // Default: application-wide errors
+  if (isOperational) appLogger.warn(err.message, meta);
+  else appLogger.error(err.message, { ...meta, stack: err.stack });
+};
+
+/* ----------------------------
+   Response senders
+----------------------------- */
+const sendDevError = (err, res) => {
+  res.status(err.statusCode || 500).json({
+    status: err.status || 'error',
+    message: err.message,
+    stack: err.stack,
+    error: err
+  });
 };
 
 const sendProdError = (err, res) => {
@@ -47,19 +97,14 @@ const sendProdError = (err, res) => {
   }
 };
 
+/* ----------------------------
+   Global error middleware
+----------------------------- */
 export default (err, req, res, next) => {
-  let error = err;
+  const error = normalizeError(err);
 
-  if (error.code === 11000) {
-    error = duplicateFieldErrorHandler(error);
-  }
+  logError(error, req);
 
-  if (error.kind === 'ObjectId') {
-    error = castErrorHandler(error);
-  }
-  if (env === 'development') {
-    sendDevError(error, res);
-  } else {
-    sendProdError(error, res);
-  }
+  if (env === 'development') sendDevError(error, res);
+  else sendProdError(error, res);
 };

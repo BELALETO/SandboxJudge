@@ -3,7 +3,7 @@ import { connectDB, disconnectDB } from './config/db.js';
 import config from './config/config.js';
 import { connectRedis, disconnectRedis } from './config/redis.js';
 
-import { appLogger } from './config/logger.js';
+import { appLogger } from './utils/logger.js';
 
 appLogger.info('Starting server...');
 

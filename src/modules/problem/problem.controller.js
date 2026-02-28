@@ -7,12 +7,15 @@ import {
 } from './problem.services.js';
 
 import { catchAsync } from '../../utils/catchAsync.js';
-import AppError from '../../utils/AppError.js';
 import { client } from '../../config/redis.js';
 import { cacheData } from '../../utils/cacheData.js';
+import { problemLogger } from '../../utils/logger.js';
 
 export const createProblem = catchAsync(async (req, res) => {
   const problem = await createProblemService(req.body);
+  problemLogger.info(
+    `Problem created successfully: ${problem.slug} : ${problem.id}`
+  );
   res.status(201).json({
     status: 'success',
     data: problem
@@ -33,9 +36,6 @@ export const getProblems = catchAsync(async (req, res) => {
 
 export const getProblemBySlug = catchAsync(async (req, res, next) => {
   const problem = await getProblemBySlugService(req.params.slug);
-  if (!problem) {
-    return next(new AppError('Problem not found', 404));
-  }
   if (res.locals.cacheKey) {
     await cacheData(res.locals.cacheKey, problem, 3600);
   }
@@ -47,12 +47,13 @@ export const getProblemBySlug = catchAsync(async (req, res, next) => {
 
 export const updateProblem = catchAsync(async (req, res, next) => {
   const problem = await updateProblemService(req.params.slug, req.body);
-  if (!problem) {
-    return next(new AppError('Problem not found', 404));
-  }
+
   if (res.locals.cacheKey) {
     await cacheData(res.locals.cacheKey, problem, 3600);
   }
+  problemLogger.info(
+    `Problem updated successfully: ${problem.slug} : ${problem.id}`
+  );
   res.status(200).json({
     status: 'success',
     data: problem
@@ -61,11 +62,11 @@ export const updateProblem = catchAsync(async (req, res, next) => {
 
 export const deleteProblem = catchAsync(async (req, res, next) => {
   const problem = await deleteProblemService(req.params.slug);
-  if (!problem) {
-    return next(new AppError('Problem not found', 404));
-  }
   if (res.locals.cacheKey) {
     await client.del(res.locals.cacheKey);
   }
+  problemLogger.info(
+    `Problem deleted successfully: ${problem.slug} : ${problem.id}`
+  );
   res.status(204).send();
 });

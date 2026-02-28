@@ -1,5 +1,5 @@
 import AppError from '../utils/AppError.js';
-import { appLogger } from '../config/logger.js';
+import { appLogger } from '../utils/logger.js';
 
 export const validate = (schema) => (req, res, next) => {
   const { error, value } = schema.validate(req.body, { abortEarly: false });

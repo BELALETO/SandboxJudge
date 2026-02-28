@@ -4,7 +4,8 @@ import AppError from '../../utils/AppError.js';
 import {
   getAllUsersService,
   getUserService,
-  leaderboardService
+  leaderboardService,
+  getSubmissionsService
 } from './user.services.js';
 import { client } from '../../config/redis.js';
 import { cacheData } from '../../utils/cacheData.js';
@@ -80,4 +81,19 @@ const leaderboard = catchAsync(async (req, res) => {
   });
 });
 
-export { getAllUsers, getUser, updateUser, deleteUser, leaderboard };
+const getSubmissions = catchAsync(async (req, res) => {
+  const submissions = await getSubmissionsService(req.params.id);
+  if (res.locals.cacheKey) {
+    await cacheData(res.locals.cacheKey, submissions, 3600);
+  }
+  res.status(200).json(submissions);
+});
+
+export {
+  getAllUsers,
+  getUser,
+  updateUser,
+  deleteUser,
+  leaderboard,
+  getSubmissions
+};

@@ -4,7 +4,17 @@ import Query from '../../utils/query.js';
 
 export const createProblem = async (problemData) => {
   const problem = await Problem.create(problemData);
-  return problem;
+  const sanitizedProblem = {
+    id: problem._id,
+    title: problem.title,
+    slug: problem.slug,
+    description: problem.description,
+    difficulty: problem.difficulty,
+    tags: problem.tags,
+    createdAt: problem.createdAt,
+    updatedAt: problem.updatedAt
+  };
+  return sanitizedProblem;
 };
 
 export const getProblems = async (queryString) => {
@@ -15,6 +25,11 @@ export const getProblems = async (queryString) => {
     .paginate();
 
   const problems = await query.query;
+  problems.forEach((problem) => {
+    problem.id = problem._id;
+    delete problem._id;
+    delete problem.__v;
+  });
   return problems;
 };
 
@@ -23,7 +38,17 @@ export const getProblemBySlug = async (slug) => {
   if (!problem) {
     throw new AppError('Problem not found', 404);
   }
-  return problem;
+  const sanitizedProblem = {
+    id: problem._id,
+    title: problem.title,
+    slug: problem.slug,
+    description: problem.description,
+    difficulty: problem.difficulty,
+    tags: problem.tags,
+    createdAt: problem.createdAt,
+    updatedAt: problem.updatedAt
+  };
+  return sanitizedProblem;
 };
 
 export const updateProblem = async (slug, updateData) => {
@@ -34,7 +59,17 @@ export const updateProblem = async (slug, updateData) => {
   if (!problem) {
     throw new AppError('Problem not found', 404);
   }
-  return problem;
+  const sanitizedProblem = {
+    id: problem._id,
+    title: problem.title,
+    slug: problem.slug,
+    description: problem.description,
+    difficulty: problem.difficulty,
+    tags: problem.tags,
+    createdAt: problem.createdAt,
+    updatedAt: problem.updatedAt
+  };
+  return sanitizedProblem;
 };
 
 export const deleteProblem = async (slug) => {
@@ -42,5 +77,10 @@ export const deleteProblem = async (slug) => {
   if (!problem) {
     throw new AppError('Problem not found', 404);
   }
-  return problem;
+  const sanitizedProblem = {
+    id: problem._id,
+    title: problem.title,
+    slug: problem.slug
+  };
+  return sanitizedProblem;
 };

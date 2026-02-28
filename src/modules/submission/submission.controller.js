@@ -1,6 +1,5 @@
 import {
   createSubmission as createSubmissionService,
-  getSubmissions as getSubmissionsService,
   getSubmissionById as getSubmissionByIdService,
   deleteSubmission as deleteSubmissionService
 } from './submission.services.js';
@@ -8,21 +7,15 @@ import {
 import { catchAsync } from '../../utils/catchAsync.js';
 import { client } from '../../config/redis.js';
 import { cacheData } from '../../utils/cacheData.js';
+import { submitLogger } from '../../utils/logger.js';
 
 export const createSubmission = catchAsync(async (req, res) => {
   const submission = await createSubmissionService(req.body);
+  submitLogger.info(`Submission created successfully: ${submission.id}`);
   if (res.locals.cacheKey) {
     await cacheData(res.locals.cacheKey, submission, 3600);
   }
   res.status(201).json(submission);
-});
-
-export const getSubmissions = catchAsync(async (req, res) => {
-  const submissions = await getSubmissionsService(req.params.id);
-  if (res.locals.cacheKey) {
-    await cacheData(res.locals.cacheKey, submissions, 3600);
-  }
-  res.status(200).json(submissions);
 });
 
 export const getSubmissionById = catchAsync(async (req, res, next) => {

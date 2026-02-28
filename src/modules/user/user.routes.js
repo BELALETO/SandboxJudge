@@ -5,7 +5,8 @@ import {
   getUser,
   updateUser,
   deleteUser,
-  leaderboard
+  leaderboard,
+  getSubmissions
 } from './user.controller.js';
 import { cacheMiddleware } from '../../middlewares/cache.js';
 import restrictTo from '../../middlewares/restrictTo.js';
@@ -22,5 +23,8 @@ router
   .patch(protect, restrictTo('Admin'), updateUser)
   .delete(protect, restrictTo('Admin'), deleteUser);
 router.route('/leaderboard').get(leaderboard);
+router
+  .route('/:id/submissions')
+  .get(cacheMiddleware('submission'), getSubmissions);
 
 export default router;
