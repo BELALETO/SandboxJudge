@@ -1,29 +1,23 @@
 import { Submission } from './submission.model.js';
-import User from '../user/user.model.js';
-import Problem from '../problem/problem.model.js';
 import AppError from '../../utils/AppError.js';
+import { buildQueue } from '../../queues/build/buildQueue.js';
 
 const createSubmission = async (submissionData) => {
   const submission = await Submission.create(submissionData);
-  // Simulate code execution and update submission status
-  // In a real implementation, you would integrate with a code execution service
-  setTimeout(async () => {
-    // const isAccepted = Math.random() > 0.5; // Randomly accept or reject
-    const isAccepted = true; // For testing, always accept
-    submission.status = isAccepted ? 'Accepted' : 'Wrong Answer';
-    if (isAccepted) {
-      const user = await User.findById(submission.user);
-      const problem = await Problem.findById(submission.problem);
-      await user.addSolvedProblem(problem._id);
-      await user.updateScore(problem._id);
-      user.updateRank();
-      await user.save({ validateBeforeSave: false });
-    }
-    submission.executionTime = Math.floor(Math.random() * 1000); // Simulate execution time
-    submission.memoryUsage = Math.floor(Math.random() * 256); // Simulate memory usage
-    await submission.save();
-  }, 2000); // Simulate a delay for code execution
+
+  await buildQueue.add('build', {
+    submissionId: submission._id
+  });
+
   return submission;
+};
+
+const getAllSubmisssoins = async (userId) => {
+  console.log('userId :>> ', userId);
+  const submissions = await Submission.find({ user: userId })
+    .populate('user', 'firstName lastName fullName')
+    .populate('problem', 'title');
+  return submissions;
 };
 
 //* Get a single submission by ID
@@ -45,4 +39,9 @@ const deleteSubmission = async (id) => {
   return submission;
 };
 
-export { createSubmission, getSubmissionById, deleteSubmission };
+export {
+  createSubmission,
+  getSubmissionById,
+  deleteSubmission,
+  getAllSubmisssoins
+};

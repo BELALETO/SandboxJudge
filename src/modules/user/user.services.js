@@ -1,7 +1,6 @@
 import User from './user.model.js';
 import AppError from '../../utils/AppError.js';
 import Query from '../../utils/query.js';
-import { Submission } from '../submission/submission.model.js';
 
 const getAllUsersService = async (queryString) => {
   const query = new Query(User.find(), queryString)
@@ -46,16 +45,4 @@ const leaderboardService = async () => {
   return users;
 };
 
-const getSubmissionsService = async (id) => {
-  const submissions = await Submission.find({ user: id })
-    .populate('user', 'firstName lastName fullName')
-    .populate('problem', 'title');
-  return submissions;
-};
-
-export {
-  getAllUsersService,
-  getUserService,
-  leaderboardService,
-  getSubmissionsService
-};
+export { getAllUsersService, getUserService, leaderboardService };

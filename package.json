@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "cleanLogs": "rm -rf logs/*",
     "start": "nodemon ./src/server.js",
+    "buildWorker": "node ./src/queues/build/buildWorker.js",
     "format": "prettier --write .",
     "lint": "eslint . ",
     "lint:fix": "eslint . --fix "
@@ -24,6 +26,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.70.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
