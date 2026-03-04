@@ -10,4 +10,6 @@ COPY . /app
 
 EXPOSE 5000
 
-CMD [ "node", "./src/server.js" ]
+# VOLUME [ "/node_modules" ]
+
+CMD [ "npm", "start" ]
