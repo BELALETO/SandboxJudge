@@ -8,6 +8,9 @@
     "cleanLogs": "rm -rf logs/*",
     "start": "nodemon ./src/server.js",
     "buildWorker": "node ./src/queues/build/buildWorker.js",
+    "start:all": "concurrently \"npm run start\" \"npm run buildWorker\"",
+    "seedProblems": "node ./seed/seedProblems.js --seed",
+    "deleteProblems": "node ./seed/seedProblems.js --delete",
     "format": "prettier --write .",
     "lint": "eslint . ",
     "lint:fix": "eslint . --fix "
@@ -22,7 +25,8 @@
     "eslint": "^10.0.0",
     "globals": "^17.3.0",
     "nodemon": "^3.1.11",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "concurrently": "^7.6.0"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

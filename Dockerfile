@@ -12,4 +12,4 @@ EXPOSE 5000
 
 # VOLUME [ "/node_modules" ]
 
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "start:all" ]
