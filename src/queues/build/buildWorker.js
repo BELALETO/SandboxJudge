@@ -4,13 +4,13 @@ import { submitLogger } from '../../utils/logger.js';
 import { Submission } from '../../modules/submission/submission.model.js';
 import User from '../../modules/user/user.model.js';
 import Problem from '../../modules/problem/problem.model.js';
+import config from '../../config/config.js';
+
+const { redisURL } = config;
 
 await connectDB();
 
-const connection = {
-  host: '127.0.0.1',
-  port: 6379
-};
+const connection = { url: redisURL };
 
 export const buildWorker = new Worker(
   'buildQueue',

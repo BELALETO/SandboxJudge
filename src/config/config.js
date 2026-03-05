@@ -9,5 +9,6 @@ export default {
   mongoURIProd: process.env.MONGO_URI_PROD,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiry: process.env.JWT_EXPIRES_IN,
-  env: process.env.NODE_ENV || 'development'
+  env: process.env.NODE_ENV || 'development',
+  redisURL: process.env.REDIS_URL || 'redis://localhost:6379'
 };
