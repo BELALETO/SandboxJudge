@@ -29,6 +29,6 @@ router
 
 //* An endpoint spical for getting a specific submission by its id.
 
-router.get('/:id', cacheMiddleware('submission'), getSubmissionById);
+router.get('/:id', protect, cacheMiddleware('submission'), getSubmissionById);
 
 export default router;
