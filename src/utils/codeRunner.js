@@ -34,9 +34,18 @@ function runDocker(args, stdinData = null) {
 }
 
 /**
- * Compile the user code
+ * Compile the user code (C or C++)
  */
-async function compileCode(tempDir) {
+async function compileCode(tempDir, language) {
+  let compileCmd;
+  if (language === 'c') {
+    compileCmd = 'gcc /workspace/main.c -o /workspace/main';
+  } else if (language === 'c++') {
+    compileCmd = 'g++ /workspace/main.cpp -o /workspace/main';
+  } else {
+    throw new Error('Unsupported language. Use "c" or "c++".');
+  }
+
   const args = [
     'run',
     '--rm',
@@ -60,7 +69,7 @@ async function compileCode(tempDir) {
     'judge:1.0',
     'bash',
     '-c',
-    'gcc /workspace/main.c -o /workspace/main'
+    compileCmd
   ];
 
   const { code, output } = await runDocker(args);
@@ -113,17 +122,19 @@ async function runTestCase(tempDir, input) {
 /**
  * Main orchestrator
  */
-async function runUserCode(code, testCases = [], onOutput) {
+async function runUserCode(code, language = 'c', testCases = [], onOutput) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'judge-'));
 
   try {
-    const sourcePath = path.join(tempDir, 'main.c');
+    // Determine file extension
+    const ext = language === 'c++' ? '.cpp' : '.c';
+    const sourcePath = path.join(tempDir, `main${ext}`);
 
     // write code file
     await fs.writeFile(sourcePath, code, { mode: 0o644 });
 
     // compile
-    await compileCode(tempDir);
+    await compileCode(tempDir, language);
 
     const results = [];
 

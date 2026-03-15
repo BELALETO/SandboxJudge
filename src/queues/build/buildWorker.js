@@ -30,6 +30,7 @@ export const buildWorker = new Worker(
     // 2. Run the code against all problem test cases
     const testResults = await runUserCode(
       submission.code,
+      submission.language,
       problem.testCases,
       (text) => {
         submitLogger.info(`Submission ${submission._id} output: ${text}`);
