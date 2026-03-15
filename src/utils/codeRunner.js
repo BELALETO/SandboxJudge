@@ -1,132 +1,169 @@
 import { spawn } from 'child_process';
+import fs from 'fs/promises';
+import path from 'path';
+import os from 'os';
 
 /**
- * Compile the user code inside a container
+ * Helper to run docker commands
  */
-async function compileCode(code) {
+function runDocker(args, stdinData = null) {
   return new Promise((resolve, reject) => {
-    const dockerArgs = [
-      'run',
-      '--rm',
-      '--user',
-      '0:0',
-      '--network',
-      'none',
-      '--memory',
-      '128m',
-      '--pids-limit',
-      '64',
-      '--cpus',
-      '0.5',
-      '-i',
-      'judge:1.0',
-      'bash',
-      '-c',
-      `
-        mkdir -p /tmp/code && \
-        cat > /tmp/code/main.c && \
-        gcc /tmp/code/main.c -o /tmp/code/main
-      `
-    ];
+    const docker = spawn('docker', args);
 
-    const docker = spawn('docker', dockerArgs);
     let output = '';
 
-    docker.stdin.write(code);
-    docker.stdin.end();
-
-    docker.stdout.on('data', (chunk) => (output += chunk.toString()));
-    docker.stderr.on('data', (chunk) => (output += chunk.toString()));
-
-    docker.on('close', (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`Compilation failed:\n${output}`));
-    });
-
-    docker.on('error', (err) => reject(err));
-  });
-}
-
-/**
- * Run the compiled program for a single test case
- */
-async function runTestCase(input) {
-  return new Promise((resolve, reject) => {
-    const dockerArgs = [
-      'run',
-      '--rm',
-      '--user',
-      '0:0',
-      '--network',
-      'none',
-      '--memory',
-      '128m',
-      '--pids-limit',
-      '64',
-      '--cpus',
-      '0.5',
-      '-i',
-      'judge:1.0',
-      'bash',
-      '-c',
-      `
-        cat > /tmp/code/input.txt && \
-        /tmp/code/main < /tmp/code/input.txt
-      `
-    ];
-
-    const docker = spawn('docker', dockerArgs);
-    let output = '';
-
-    docker.stdin.write(input);
-    docker.stdin.end();
-
-    docker.stdout.on('data', (chunk) => (output += chunk.toString()));
-    docker.stderr.on('data', (chunk) => (output += chunk.toString()));
-
-    docker.on('close', (code) => {
-      if (code === 0) resolve(output.trim());
-      else
-        reject(new Error(`Execution failed with exit code ${code}\n${output}`));
-    });
-
-    docker.on('error', (err) => reject(err));
-  });
-}
-
-/**
- * Orchestrates compilation + running all test cases
- */
-async function runUserCode(code, testCases = [], onOutput) {
-  await compileCode(code);
-
-  const results = [];
-  for (const [index, testCase] of testCases.entries()) {
-    try {
-      const output = await runTestCase(testCase.input);
-      const passed = output === testCase.output.trim();
-      results.push({
-        testCase: index + 1,
-        input: testCase.input,
-        expected: testCase.output,
-        output,
-        passed
-      });
-      if (onOutput)
-        onOutput(`Test case ${index + 1}: ${passed ? 'PASSED' : 'FAILED'}`);
-    } catch (err) {
-      results.push({
-        testCase: index + 1,
-        input: testCase.input,
-        expected: testCase.output,
-        output: err.message,
-        passed: false
-      });
-      if (onOutput) onOutput(`Test case ${index + 1}: ERROR`);
+    if (stdinData) {
+      docker.stdin.write(stdinData);
+      docker.stdin.end();
     }
+
+    docker.stdout.on('data', (chunk) => {
+      output += chunk.toString();
+    });
+
+    docker.stderr.on('data', (chunk) => {
+      output += chunk.toString();
+    });
+
+    docker.on('close', (code) => {
+      resolve({ code, output });
+    });
+
+    docker.on('error', reject);
+  });
+}
+
+/**
+ * Compile the user code
+ */
+async function compileCode(tempDir) {
+  const args = [
+    'run',
+    '--rm',
+    '--user',
+    '0:0',
+    '--network',
+    'none',
+    '--memory',
+    '128m',
+    '--pids-limit',
+    '64',
+    '--cpus',
+    '0.5',
+    '--read-only',
+    '--tmpfs',
+    '/tmp',
+    '--security-opt',
+    'no-new-privileges',
+    '-v',
+    `${tempDir}:/workspace`,
+    'judge:1.0',
+    'bash',
+    '-c',
+    'gcc /workspace/main.c -o /workspace/main'
+  ];
+
+  const { code, output } = await runDocker(args);
+
+  if (code !== 0) {
+    throw new Error(`Compilation Error:\n${output}`);
+  }
+}
+
+/**
+ * Run compiled program with a test input
+ */
+async function runTestCase(tempDir, input) {
+  const args = [
+    'run',
+    '--rm',
+    '--user',
+    '0:0',
+    '--network',
+    'none',
+    '--memory',
+    '128m',
+    '--pids-limit',
+    '64',
+    '--cpus',
+    '0.5',
+    '--read-only',
+    '--tmpfs',
+    '/tmp',
+    '--security-opt',
+    'no-new-privileges',
+    '-i',
+    '-v',
+    `${tempDir}:/workspace`,
+    'judge:1.0',
+    'bash',
+    '-c',
+    '/workspace/main'
+  ];
+
+  const { code, output } = await runDocker(args, input);
+
+  if (code !== 0) {
+    throw new Error(`Runtime Error:\n${output}`);
   }
 
-  return results;
+  return output.trim();
 }
 
-export { runUserCode, compileCode, runTestCase };
+/**
+ * Main orchestrator
+ */
+async function runUserCode(code, testCases = [], onOutput) {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'judge-'));
+
+  try {
+    const sourcePath = path.join(tempDir, 'main.c');
+
+    // write code file
+    await fs.writeFile(sourcePath, code, { mode: 0o644 });
+
+    // compile
+    await compileCode(tempDir);
+
+    const results = [];
+
+    for (const [index, testCase] of testCases.entries()) {
+      try {
+        const output = await runTestCase(tempDir, testCase.input);
+
+        const passed = output === testCase.output.trim();
+
+        results.push({
+          testCase: index + 1,
+          input: testCase.input,
+          expected: testCase.output,
+          output,
+          passed
+        });
+
+        if (onOutput) {
+          onOutput(`Test case ${index + 1}: ${passed ? 'PASSED' : 'FAILED'}`);
+        }
+      } catch (err) {
+        results.push({
+          testCase: index + 1,
+          input: testCase.input,
+          expected: testCase.output,
+          output: err.message,
+          passed: false
+        });
+
+        if (onOutput) {
+          onOutput(`Test case ${index + 1}: ERROR`);
+        }
+      }
+    }
+
+    return results;
+  } finally {
+    // cleanup temp directory
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+}
+
+export { runUserCode };

@@ -20,6 +20,16 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/problems', problemRouter);
 app.use('/api/v1/submit', submissionRouter);
 
+//TODO: A test route to run code without logging in.
+app.post('/api/v1/run', (req, res) => {
+  const { code, language } = req.body;
+  // TODO: Here you would typically integrate with a code execution service
+  res.status(200).json({
+    status: 'success',
+    message: 'Code executed successfully :)'
+  });
+});
+
 app.get('/test', (req, res) => {
   res.status(200).json({
     status: 'success',

@@ -6,6 +6,7 @@ import Problem from '../../modules/problem/problem.model.js';
 import { Submission } from '../../modules/submission/submission.model.js';
 import config from '../../config/config.js';
 import { runUserCode } from '../../utils/codeRunner.js';
+import AppError from '../../utils/AppError.js';
 
 const { redisURL } = config;
 
@@ -23,7 +24,7 @@ export const buildWorker = new Worker(
     const problem = await Problem.findById(submission.problem);
 
     if (!submission || !problem) {
-      throw new Error('Submission or problem not found');
+      throw new AppError('Submission or problem not found', 404);
     }
 
     // 2. Run the code against all problem test cases
