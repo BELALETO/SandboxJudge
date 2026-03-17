@@ -1,0 +1,9 @@
+FROM alpine:latest
+
+# Install necessary compilers, interpreters, and utilities
+RUN apk add --no-cache \
+    bash \
+    gcc \
+    g++ \
+    musl-dev \
+    python3

@@ -20,7 +20,7 @@ const submissionSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Programming language is required.'],
       enum: {
-        values: ['c', 'c++', 'Java', 'Python', 'JavaScript'],
+        values: ['c', 'c++', 'java', 'python', 'javascript'],
         message: "{VALUE} isn't supported."
       }
     },

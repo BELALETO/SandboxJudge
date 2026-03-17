@@ -28,7 +28,10 @@ async function runUserCode(code, language = 'c', testCases = [], onOutput) {
   const containerName = `judge-${Date.now()}`;
 
   try {
-    const ext = language === 'c++' ? '.cpp' : '.c';
+    let ext = '.c';
+    if (language === 'c++') ext = '.cpp';
+    if (language === 'python') ext = '.py';
+    
     const sourcePath = path.join(tempDir, `main${ext}`);
     await fs.writeFile(sourcePath, code, { mode: 0o644 });
 
@@ -62,18 +65,25 @@ async function runUserCode(code, language = 'c', testCases = [], onOutput) {
     ]);
 
     // compile inside container
-    const compileCmd =
-      language === 'c'
-        ? 'gcc /workspace/main.c -o /workspace/main'
-        : 'g++ /workspace/main.cpp -o /workspace/main';
+    let compileExit = 0;
+    let compileOutput = '';
 
-    const { code: compileExit, output: compileOutput } = await runDocker([
-      'exec',
-      containerName,
-      'bash',
-      '-c',
-      compileCmd
-    ]);
+    if (language !== 'python') {
+      const compileCmd =
+        language === 'c'
+          ? 'gcc /workspace/main.c -o /workspace/main'
+          : 'g++ /workspace/main.cpp -o /workspace/main';
+
+      const compileResult = await runDocker([
+        'exec',
+        containerName,
+        'bash',
+        '-c',
+        compileCmd
+      ]);
+      compileExit = compileResult.code;
+      compileOutput = compileResult.output;
+    }
 
     if (compileExit !== 0) {
       throw new Error(`Compilation Error:\n${compileOutput}`);
@@ -83,8 +93,10 @@ async function runUserCode(code, language = 'c', testCases = [], onOutput) {
 
     for (const [index, testCase] of testCases.entries()) {
       try {
+        const runCmd = language === 'python' ? 'python3 /workspace/main.py' : '/workspace/main';
+
         const { code: runExit, output: runOutput } = await runDocker(
-          ['exec', '-i', containerName, 'bash', '-c', '/workspace/main'],
+          ['exec', '-i', containerName, 'bash', '-c', runCmd],
           testCase.input
         );
 
