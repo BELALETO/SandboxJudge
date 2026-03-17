@@ -13,7 +13,7 @@ export default {
   redisURL: process.env.REDIS_URL || 'redis://localhost:6379',
   email: {
     from: process.env.EMAIL_FROM,
-    smtpUser: process.env.BREVO_SMTP_USER,
-    smtpPass: process.env.BREVO_SMTP_PASS
+    smtpUser: process.env.MAILJET_API_KEY,
+    smtpPass: process.env.MAILJET_SECRET
   }
 };

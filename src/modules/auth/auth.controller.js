@@ -36,11 +36,9 @@ export const login = catchAsync(async (req, res, next) => {
 });
 
 export const forgotPassword = catchAsync(async (req, res, next) => {
-  const { resetToken } = await forgotPasswordService(req.body.email);
+  await forgotPasswordService(req.body.email);
   res.status(200).json({
     status: 'success',
-    data: {
-      resetToken
-    }
+    message: 'Password reset email sent. Please check your inbox.'
   });
 });

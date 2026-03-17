@@ -1,5 +1,6 @@
 import User from '../user/user.model.js';
 import { generateToken } from '../../utils/jwt.js';
+import { sendEmail } from '../../utils/email.js';
 import AppError from '../../utils/AppError.js';
 
 export const registerUser = async (userData) => {
@@ -46,5 +47,11 @@ export const forgotPasswordService = async (email) => {
   const resetToken = await user.generateResetToken();
   user.save({ validateBeforeSave: false });
   //TODO: Send resetToken to user's email
-  return { resetToken };
+  await sendEmail({
+    to: user.email,
+    subject: 'Password Reset',
+    text: `You requested a password reset. Use the following token to reset your password: ${resetToken}`,
+    html: `<p>You requested a password reset. Use the following token to reset your password:</p><p><strong>${resetToken}</strong></p>`
+  });
+  // return { resetToken };
 };
