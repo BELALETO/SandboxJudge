@@ -39,3 +39,10 @@ export const loginSchema = Joi.object({
         'Password must contain uppercase, lowercase, number, and special character'
     })
 });
+
+export const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    'string.empty': 'Email is required',
+    'string.email': 'Invalid email format'
+  })
+});

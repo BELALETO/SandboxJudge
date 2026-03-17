@@ -36,3 +36,15 @@ export const loginUser = async (incomingData) => {
 
   return { user: sanitizedUser, token };
 };
+
+export const forgotPasswordService = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new AppError('No user found with that email', 404);
+  }
+  //TODO: Create password reset token and send email
+  const resetToken = await user.generateResetToken();
+  user.save({ validateBeforeSave: false });
+  //TODO: Send resetToken to user's email
+  return { resetToken };
+};

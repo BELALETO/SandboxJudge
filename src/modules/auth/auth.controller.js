@@ -1,5 +1,9 @@
 import { catchAsync } from '../../utils/catchAsync.js';
-import { registerUser, loginUser } from './auth.services.js';
+import {
+  registerUser,
+  loginUser,
+  forgotPasswordService
+} from './auth.services.js';
 import sendCookie from '../../utils/cookie.js';
 import { authLogger } from '../../utils/logger.js';
 
@@ -27,6 +31,16 @@ export const login = catchAsync(async (req, res, next) => {
     data: {
       user,
       token
+    }
+  });
+});
+
+export const forgotPassword = catchAsync(async (req, res, next) => {
+  const { resetToken } = await forgotPasswordService(req.body.email);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      resetToken
     }
   });
 });
