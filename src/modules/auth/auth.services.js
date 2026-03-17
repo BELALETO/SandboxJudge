@@ -55,3 +55,23 @@ export const forgotPasswordService = async (email) => {
   });
   // return { resetToken };
 };
+
+export const resetPasswordService = async (token, newPassword) => {
+  const user = await User.findOne({
+    passwordResetToken: token,
+    passwordResetExpires: { $gt: Date.now() }
+  });
+  if (!user) {
+    throw new AppError('Invalid or expired password reset token', 400);
+  }
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+  await sendEmail({
+    to: user.email,
+    subject: 'Password Reset Successful',
+    text: 'Your password has been reset successfully. You can now log in with your new password.',
+    html: `<p>Your password has been reset successfully. You can now log in with your new password.</p>`
+  });
+};

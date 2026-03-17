@@ -46,3 +46,17 @@ export const forgotPasswordSchema = Joi.object({
     'string.email': 'Invalid email format'
   })
 });
+
+export const resetPasswordSchema = Joi.object({
+  token: Joi.string().required().messages({
+    'string.empty': 'Reset token is required'
+  }),
+  newPassword: Joi.string()
+    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/)
+    .required()
+    .messages({
+      'string.empty': 'New password is required',
+      'string.pattern.base':
+        'New password must contain uppercase, lowercase, number, and special character'
+    })
+});
