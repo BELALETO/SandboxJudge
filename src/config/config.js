@@ -10,5 +10,10 @@ export default {
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiry: process.env.JWT_EXPIRES_IN,
   env: process.env.NODE_ENV || 'development',
-  redisURL: process.env.REDIS_URL || 'redis://localhost:6379'
+  redisURL: process.env.REDIS_URL || 'redis://localhost:6379',
+  email: {
+    from: process.env.EMAIL_FROM,
+    smtpUser: process.env.BREVO_SMTP_USER,
+    smtpPass: process.env.BREVO_SMTP_PASS
+  }
 };
