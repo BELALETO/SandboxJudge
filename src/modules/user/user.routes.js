@@ -5,13 +5,18 @@ import {
   getUser,
   updateUser,
   deleteUser,
-  leaderboard
+  leaderboard,
+  updateMe,
+  deleteMe
 } from './user.controller.js';
 import { cacheMiddleware } from '../../middlewares/cache.js';
 import restrictTo from '../../middlewares/restrictTo.js';
 import protect from '../../middlewares/protect.js';
 
 const router = express.Router();
+
+router.patch('/updateMe', protect, updateMe);
+router.delete('/deleteMe', protect, deleteMe);
 
 router
   .route('/')

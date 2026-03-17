@@ -45,4 +45,39 @@ const leaderboardService = async () => {
   return users;
 };
 
-export { getAllUsersService, getUserService, leaderboardService };
+const updateMeService = async (userId, body) => {
+  // 1) Create error if user POSTs password data
+  if (body.password || body.passwordConfirm) {
+    throw new AppError(
+      'This route is not for password updates. Please use /updateMyPassword.',
+      400
+    );
+  }
+
+  // 2) Filter out unwanted fields names that are not allowed to be updated
+  const allowedFields = ['firstName', 'lastName', 'email'];
+  const filteredBody = {};
+  Object.keys(body).forEach((el) => {
+    if (allowedFields.includes(el)) filteredBody[el] = body[el];
+  });
+
+  // 3) Update user document
+  const updatedUser = await User.findByIdAndUpdate(userId, filteredBody, {
+    new: true,
+    runValidators: true
+  });
+
+  return updatedUser;
+};
+
+const deleteMeService = async (userId) => {
+  await User.findByIdAndDelete(userId);
+};
+
+export {
+  getAllUsersService,
+  getUserService,
+  leaderboardService,
+  updateMeService,
+  deleteMeService
+};

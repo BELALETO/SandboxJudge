@@ -4,7 +4,9 @@ import AppError from '../../utils/AppError.js';
 import {
   getAllUsersService,
   getUserService,
-  leaderboardService
+  leaderboardService,
+  updateMeService,
+  deleteMeService
 } from './user.services.js';
 import { client } from '../../config/redis.js';
 import { cacheData } from '../../utils/cacheData.js';
@@ -80,4 +82,40 @@ const leaderboard = catchAsync(async (req, res) => {
   });
 });
 
-export { getAllUsers, getUser, updateUser, deleteUser, leaderboard };
+const updateMe = catchAsync(async (req, res, next) => {
+  const updatedUser = await updateMeService(req.user.id, req.body);
+
+  if (res.locals.cacheKey) {
+    await cacheData(res.locals.cacheKey, updatedUser, 3600);
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user: updatedUser
+    }
+  });
+});
+
+const deleteMe = catchAsync(async (req, res, next) => {
+  await deleteMeService(req.user.id);
+
+  if (res.locals.cacheKey) {
+    await client.del(res.locals.cacheKey);
+  }
+
+  res.status(204).json({
+    status: 'success',
+    data: null
+  });
+});
+
+export {
+  getAllUsers,
+  getUser,
+  updateUser,
+  deleteUser,
+  leaderboard,
+  updateMe,
+  deleteMe
+};
