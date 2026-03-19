@@ -43,17 +43,9 @@ export const forgotPasswordService = async (email) => {
   if (!user) {
     throw new AppError('No user found with that email', 404);
   }
-  //TODO: Create password reset token and send email
   const resetToken = await user.generateResetToken();
   user.save({ validateBeforeSave: false });
-  //TODO: Send resetToken to user's email
-  await sendEmail({
-    to: user.email,
-    subject: 'Password Reset',
-    text: `You requested a password reset. Use the following token to reset your password: ${resetToken}`,
-    html: `<p>You requested a password reset. Use the following token to reset your password:</p><p><strong>${resetToken}</strong></p>`
-  });
-  // return { resetToken };
+  return { resetToken };
 };
 
 export const resetPasswordService = async (token, newPassword) => {
@@ -68,10 +60,4 @@ export const resetPasswordService = async (token, newPassword) => {
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
-  await sendEmail({
-    to: user.email,
-    subject: 'Password Reset Successful',
-    text: 'Your password has been reset successfully. You can now log in with your new password.',
-    html: `<p>Your password has been reset successfully. You can now log in with your new password.</p>`
-  });
 };
