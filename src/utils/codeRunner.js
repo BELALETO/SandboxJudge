@@ -1,26 +1,7 @@
-import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
-
-/** Helper to run docker commands */
-function runDocker(args, stdinData = null) {
-  return new Promise((resolve, reject) => {
-    const docker = spawn('docker', args);
-    let output = '';
-
-    if (stdinData) {
-      docker.stdin.write(stdinData);
-      docker.stdin.end();
-    }
-
-    docker.stdout.on('data', (chunk) => (output += chunk.toString()));
-    docker.stderr.on('data', (chunk) => (output += chunk.toString()));
-
-    docker.on('close', (code) => resolve({ code, output }));
-    docker.on('error', reject);
-  });
-}
+import { runDocker } from './runDocker';
 
 /** Main orchestrator: single container for compile + run */
 async function runUserCode(code, language = 'c', testCases = [], onOutput) {
@@ -31,7 +12,7 @@ async function runUserCode(code, language = 'c', testCases = [], onOutput) {
     let ext = '.c';
     if (language === 'c++') ext = '.cpp';
     if (language === 'python') ext = '.py';
-    
+
     const sourcePath = path.join(tempDir, `main${ext}`);
     await fs.writeFile(sourcePath, code, { mode: 0o644 });
 
@@ -93,7 +74,10 @@ async function runUserCode(code, language = 'c', testCases = [], onOutput) {
 
     for (const [index, testCase] of testCases.entries()) {
       try {
-        const runCmd = language === 'python' ? 'python3 /workspace/main.py' : '/workspace/main';
+        const runCmd =
+          language === 'python'
+            ? 'python3 /workspace/main.py'
+            : '/workspace/main';
 
         const { code: runExit, output: runOutput } = await runDocker(
           ['exec', '-i', containerName, 'bash', '-c', runCmd],
