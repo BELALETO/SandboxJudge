@@ -5,8 +5,7 @@ import User from '../../modules/user/user.model.js';
 import Problem from '../../modules/problem/problem.model.js';
 import { Submission } from '../../modules/submission/submission.model.js';
 import config from '../../config/config.js';
-import { runUserCode } from '../../utils/codeRunner.js';
-import AppError from '../../utils/AppError.js';
+import { runUserCode, VERDICTS } from '../../utils/codeRunner.js';
 
 const { redisURL } = config;
 
@@ -14,67 +13,57 @@ await connectDB();
 
 const connection = { url: redisURL };
 
-export const buildWorker = new Worker(
-  'buildQueue',
-  async (job) => {
-    submitLogger.info(`Processing submission ${job.data.submissionId}...`);
+async function processSubmission(job) {
+  const { submissionId } = job.data;
+  submitLogger.info(`Processing submission ${submissionId}...`);
 
-    // 1. Fetch submission and problem
-    const submission = await Submission.findById(job.data.submissionId);
-    const problem = await Problem.findById(submission.problem);
+  const submission = await Submission.findById(submissionId);
+  if (!submission) throw new Error(`Submission ${submissionId} not found`);
 
-    if (!submission || !problem) {
-      throw new AppError('Submission or problem not found', 404);
-    }
+  const problem = await Problem.findById(submission.problem);
+  if (!problem) throw new Error(`Problem for submission ${submissionId} not found`);
 
-    // 2. Run the code against all problem test cases
-    const testResults = await runUserCode(
-      submission.code,
-      submission.language,
-      problem.testCases,
-      (text) => {
-        submitLogger.info(`Submission ${submission._id} output: ${text}`);
-      }
-    );
+  const { verdict, results } = await runUserCode(
+    submission.code,
+    submission.language,
+    problem.testCases,
+    (text) => submitLogger.info(`Submission ${submissionId} → ${text}`)
+  );
 
-    // 3. Determine if all test cases passed
-    const isAccepted = testResults.every((t) => t.passed);
+  submission.status = verdict;
+  submission.testResults = results;
 
-    // 4. Update submission
-    submission.status = isAccepted ? 'Accepted' : 'Wrong Answer';
-    submission.testResults = testResults;
+  submission.executionTime = results.reduce(
+    (sum, t) => sum + (t.executionTime ?? 0),
+    0
+  );
+  submission.memoryUsage = results.length
+    ? Math.max(...results.map((t) => t.memoryUsage ?? 0))
+    : 0;
 
-    // Optionally, calculate total execution time & max memory
-    submission.executionTime = testResults.reduce(
-      (sum, t) => sum + (t.executionTime || 0),
-      0
-    );
-    submission.memoryUsage = Math.max(
-      ...testResults.map((t) => t.memoryUsage || 0)
-    );
-
-    // 5. Update user stats if accepted
-    if (isAccepted) {
-      const user = await User.findById(submission.user);
-
+  if (verdict === VERDICTS.ACCEPTED) {
+    const user = await User.findById(submission.user);
+    if (user) {
       await user.addSolvedProblem(problem._id);
       await user.updateScore(problem._id);
       await user.updateRank();
       await user.save({ validateBeforeSave: false });
     }
+  }
 
-    await submission.save();
+  await submission.save();
 
-    return {
-      submissionId: submission._id,
-      status: submission.status,
-      testResults
-    };
-  },
-  { connection }
-);
+  return {
+    submissionId: submission._id,
+    status: submission.status,
+    testResults: results,
+  };
+}
 
-// Logging
+export const buildWorker = new Worker('buildQueue', processSubmission, {
+  connection,
+});
+
 buildWorker.on('completed', (job, result) => {
   submitLogger.info(
     `Job ${job.id} completed | Submission ${result.submissionId} → ${result.status}`
