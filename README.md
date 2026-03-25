@@ -18,71 +18,44 @@ Sandbox Judge takes raw code submissions (C, C++, Python), securely compiles and
 
 To run this project, make sure you have the following installed on your system:
 
-1.  [Node.js](https://nodejs.org/) (v16 or higher recommended)
-2.  [Docker](https://www.docker.com/) (Required for the code execution sandboxing engine)
-3.  [Docker Compose](https://docs.docker.com/compose/) (For easily spinning up MongoDB and Redis)
+1.  [Docker](https://www.docker.com/)
+2.  [Docker Compose](https://docs.docker.com/compose/)
 
-## Setup & Run Locally
+*(Note: You do not need Node.js installed locally, as the entire application runs inside Docker containers.)*
 
-### 1. Build the Code Execution Image
+## Setup & Run
 
-The code runner relies on a locally available Docker image named `judge:1.0` to quickly spawn sandboxes. You must build this image first:
+### 1. Environment Variables
 
-```bash
-docker build -t judge:1.0 -f Dockerfile.judge .
-```
-
-### 2. Environment Variables
-
-Create a `.env` file in the root directory and ensure the necessary environment variables are set. Standard `.env` might look like:
+Create a `.env` file in the root directory. Because the application runs via Docker Compose, the database and Redis URLs should point to the container names. A standard `.env` might look like:
 
 ```ini
 PORT=5000
 HOST=0.0.0.0
-MONGO_URI=mongodb://localhost:27017/SandboxJudge
-REDIS_URL=redis://127.0.0.1:6379
+MONGO_URI=mongodb://mongodb:27017/SandboxJudge
+REDIS_URL=redis://redis:6379
 JWT_SECRET=your_super_secret_jwt_string
 ```
-*(Check the codebase or existing `.env` structure if you need other specific variables like SMTP configs)*
 
-### 3. Start Database and Message Broker (Redis)
+### 2. Start the Application
 
-Start up MongoDB and Redis using Docker Compose:
-
-```bash
-# This will spin up the `mongodb` and `redis` containers in daemon mode
-docker-compose up -d mongodb redis
-```
-
-### 4. Install Dependencies
-
-Install the Node.js project dependencies locally:
+Start up everything (MongoDB, Redis, and the Sandbox Judge API/Worker, along with building the Sandbox Judge image) using Docker Compose:
 
 ```bash
-npm install
+docker-compose up --build
 ```
+*(Optionally, add `-d` at the end to run in detached daemon mode.)*
 
-### 5. Start the Application
+This single command will automatically build the backend application image, install its dependencies inside the container, build the safe execution sandboxing image, and spin up all required services.
 
-Sandbox Judge consists of two running processes: the **API Server** and the **Build Worker** (which handles BullMQ jobs). 
-You can start both simultaneously using `concurrently` (defined in `package.json`):
+### 3. Seeding Data (Optional)
+
+If you need initial problems populated in your MongoDB, you can execute the seed script inside the running backend container:
 
 ```bash
-npm run start:all
+docker exec -it sandbox-judge npm run seedProblems
 ```
-
-Alternatively, you can run them in separate terminal windows for isolated logs:
-*   Terminal 1 (Server): `npm run start`
-*   Terminal 2 (Worker): `npm run buildWorker`
-
-### 6. Seeding Data (Optional)
-
-If you need initial problems populated in your MongoDB, use the seed script:
-
-```bash
-npm run seedProblems
-```
-*(To remove Seed data, you can use `npm run deleteProblems`)*
+*(To remove Seed data, you can use `docker exec -it sandbox-judge npm run deleteProblems`)*
 
 ## API Endpoints Overview
 

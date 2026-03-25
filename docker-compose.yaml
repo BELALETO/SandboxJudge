@@ -13,6 +13,13 @@ services:
     ports:
       - '6379:6379'
 
+  judge-env:
+    image: judge:1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.judge
+    command: ["true"]
+
   backend:
     container_name: sandbox-judge
     build: .
