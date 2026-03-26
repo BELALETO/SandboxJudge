@@ -25,9 +25,9 @@ const COMPILE_CMD = {
 };
 
 const RUN_CMD = {
-  c: '/workspace/main',
-  'c++': '/workspace/main',
-  python: 'python3 /workspace/main.py',
+  c: 'timeout 5s /workspace/main',
+  'c++': 'timeout 5s /workspace/main',
+  python: 'timeout 5s python3 /workspace/main.py',
 };
 
 
@@ -91,17 +91,25 @@ async function runTestCase(containerName, language, testCase, index, onOutput) {
     const output = rawOutput.trim();
 
     if (runExit !== 0) {
-      submitLogger.warn(`Test ${index + 1} Runtime Error: ${output}`);
+      let verdict = VERDICTS.RUNTIME_ERROR;
+      let uiMessage = 'RUNTIME ERROR';
+      
+      if (runExit === 124) {
+        verdict = VERDICTS.TIME_LIMIT_EXCEEDED;
+        uiMessage = 'TIME LIMIT EXCEEDED';
+      }
+
+      submitLogger.warn(`Test ${index + 1} ${uiMessage}: ${output}`);
       const result = {
         testCase: index + 1,
         input: testCase.input,
         expected: testCase.output,
         output,
         passed: false,
-        verdict: VERDICTS.RUNTIME_ERROR,
+        verdict,
         executionTime,
       };
-      if (onOutput) onOutput(`Test case ${index + 1}: RUNTIME ERROR`);
+      if (onOutput) onOutput(`Test case ${index + 1}: ${uiMessage}`);
       return result;
     }
 
