@@ -3,7 +3,8 @@ import {
   registerUser,
   loginUser,
   forgotPasswordService,
-  resetPasswordService
+  resetPasswordService,
+  adminRegisterService
 } from './auth.services.js';
 import sendCookie from '../../utils/cookie.js';
 import { authLogger } from '../../utils/logger.js';

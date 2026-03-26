@@ -3,7 +3,8 @@ import {
   register,
   login,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  adminRegister
 } from './auth.controller.js';
 import { validate } from '../../middlewares/validate.js';
 import {

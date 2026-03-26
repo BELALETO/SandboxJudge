@@ -18,6 +18,8 @@ const router = express.Router();
 router.patch('/updateMe', protect, updateMe);
 router.delete('/deleteMe', protect, deleteMe);
 
+router.route('/leaderboard').get(leaderboard);
+
 router
   .route('/')
   .get(protect, restrictTo('Admin'), cacheMiddleware('users'), getAllUsers);
@@ -26,6 +28,5 @@ router
   .get(cacheMiddleware('user'), getUser)
   .patch(protect, restrictTo('Admin'), updateUser)
   .delete(protect, restrictTo('Admin'), deleteUser);
-router.route('/leaderboard').get(leaderboard);
 
 export default router;
