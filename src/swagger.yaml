@@ -107,6 +107,33 @@ paths:
       responses:
         '201':
           description: User registered successfully
+  /auth/admin/register:
+    post:
+      summary: Register a new admin user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, email, password, passwordConfirm]
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                passwordConfirm:
+                  type: string
+                role:
+                  type: string
+      responses:
+        '201':
+          description: Admin registered successfully
   /auth/login:
     post:
       summary: Login user

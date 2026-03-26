@@ -71,3 +71,19 @@ export const resetPassword = catchAsync(async (req, res, next) => {
       'Password reset successful. You can now log in with your new password.'
   });
 });
+
+
+export const adminRegister = catchAsync(async (req, res, next) => {
+  const { user, token } = await adminRegisterService(req.body);
+  sendCookie(res, token);
+  authLogger.info(
+    `Admin: ${user.fullName} : ${user.id} registered successfully`
+  );
+  res.status(201).json({
+    status: 'success',
+    data: {
+      user,
+      token
+    }
+  });
+});

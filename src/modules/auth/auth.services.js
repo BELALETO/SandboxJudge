@@ -61,3 +61,19 @@ export const resetPasswordService = async (token, newPassword) => {
   user.passwordResetExpires = undefined;
   await user.save();
 };
+
+export const adminRegisterService = async (userData) => {
+  const user = await User.create(userData);
+
+  const token = await generateToken(user.id);
+
+  const sanitizedUser = {
+    id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    fullName: user.fullName
+  };
+
+  return { user: sanitizedUser, token };
+};

@@ -10,11 +10,13 @@ import {
   registerSchema,
   loginSchema,
   forgotPasswordSchema,
-  resetPasswordSchema
+  resetPasswordSchema,
+  adminRegisterSchema
 } from './auth.validate.js';
 
 const router = express.Router();
 
+router.post('/admin/register', validate(adminRegisterSchema), adminRegister);
 router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
 router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
